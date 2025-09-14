@@ -209,4 +209,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Srinivas Koritala
 - GitHub: [@srinivaskoritala](https://github.com/srinivaskoritala)
-- Email: srinivas.koritala@example.com
+- Email: srinivas.koritala@gmail.com
