@@ -1,0 +1,155 @@
+name: clos-bgp-evpn-vxlan
+
+topology:
+  nodes:
+    # Spine switches
+    spine1:
+      kind: nokia-srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.10
+      ports:
+        - "21:eth1"
+        - "22:eth2"
+        - "23:eth3"
+        - "24:eth4"
+      env:
+        SRUN_CONF: /etc/opt/srlinux/confd/startup/config
+      binds:
+        - ./configs/spine1:/etc/opt/srlinux/confd/startup/config:ro
+
+    spine2:
+      kind: nokia-srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.11
+      ports:
+        - "25:eth1"
+        - "26:eth2"
+        - "27:eth3"
+        - "28:eth4"
+      env:
+        SRUN_CONF: /etc/opt/srlinux/confd/startup/config
+      binds:
+        - ./configs/spine2:/etc/opt/srlinux/confd/startup/config:ro
+
+    # Leaf switches
+    leaf1:
+      kind: nokia-srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.20
+      ports:
+        - "31:eth1"
+        - "32:eth2"
+        - "33:eth3"
+        - "34:eth4"
+      env:
+        SRUN_CONF: /etc/opt/srlinux/confd/startup/config
+      binds:
+        - ./configs/leaf1:/etc/opt/srlinux/confd/startup/config:ro
+
+    leaf2:
+      kind: nokia-srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.21
+      ports:
+        - "35:eth1"
+        - "36:eth2"
+        - "37:eth3"
+        - "38:eth4"
+      env:
+        SRUN_CONF: /etc/opt/srlinux/confd/startup/config
+      binds:
+        - ./configs/leaf2:/etc/opt/srlinux/confd/startup/config:ro
+
+    leaf3:
+      kind: nokia-srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.22
+      ports:
+        - "39:eth1"
+        - "40:eth2"
+        - "41:eth3"
+        - "42:eth4"
+      env:
+        SRUN_CONF: /etc/opt/srlinux/confd/startup/config
+      binds:
+        - ./configs/leaf3:/etc/opt/srlinux/confd/startup/config:ro
+
+    leaf4:
+      kind: nokia-srlinux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.23
+      ports:
+        - "43:eth1"
+        - "44:eth2"
+        - "45:eth3"
+        - "46:eth4"
+      env:
+        SRUN_CONF: /etc/opt/srlinux/confd/startup/config
+      binds:
+        - ./configs/leaf4:/etc/opt/srlinux/confd/startup/config:ro
+
+    # Host endpoints
+    host1:
+      kind: linux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.30
+      ports:
+        - "50:eth1"
+      exec:
+        - /bin/bash -c "ip addr add 10.1.1.10/24 dev eth1"
+        - /bin/bash -c "ip link set eth1 up"
+        - /bin/bash -c "ip route add default via 10.1.1.1"
+
+    host2:
+      kind: linux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.31
+      ports:
+        - "51:eth1"
+      exec:
+        - /bin/bash -c "ip addr add 10.1.1.20/24 dev eth1"
+        - /bin/bash -c "ip link set eth1 up"
+        - /bin/bash -c "ip route add default via 10.1.1.1"
+
+    host3:
+      kind: linux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.32
+      ports:
+        - "52:eth1"
+      exec:
+        - /bin/bash -c "ip addr add 10.2.2.10/24 dev eth1"
+        - /bin/bash -c "ip link set eth1 up"
+        - /bin/bash -c "ip route add default via 10.2.2.1"
+
+    host4:
+      kind: linux
+      image: ghcr.io/nokia/srlinux:latest
+      mgmt-ipv4: 172.20.20.33
+      ports:
+        - "53:eth1"
+      exec:
+        - /bin/bash -c "ip addr add 10.2.2.20/24 dev eth1"
+        - /bin/bash -c "ip link set eth1 up"
+        - /bin/bash -c "ip route add default via 10.2.2.1"
+
+  links:
+    # Spine to Leaf connections
+    - endpoints: ["spine1:eth1", "leaf1:eth1"]
+    - endpoints: ["spine1:eth2", "leaf2:eth1"]
+    - endpoints: ["spine1:eth3", "leaf3:eth1"]
+    - endpoints: ["spine1:eth4", "leaf4:eth1"]
+    
+    - endpoints: ["spine2:eth1", "leaf1:eth2"]
+    - endpoints: ["spine2:eth2", "leaf2:eth2"]
+    - endpoints: ["spine2:eth3", "leaf3:eth2"]
+    - endpoints: ["spine2:eth4", "leaf4:eth2"]
+
+    # Leaf to Host connections
+    - endpoints: ["leaf1:eth3", "host1:eth1"]
+    - endpoints: ["leaf2:eth3", "host2:eth1"]
+    - endpoints: ["leaf3:eth3", "host3:eth1"]
+    - endpoints: ["leaf4:eth3", "host4:eth1"]
+
+    # Inter-spine connection for redundancy
+    - endpoints: ["spine1:eth4", "spine2:eth4"]
